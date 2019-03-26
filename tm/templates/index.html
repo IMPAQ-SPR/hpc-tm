@@ -1,0 +1,54 @@
+{% block header %}
+<link rel="stylesheet" href="{% static "style.css" %}">
+<script src="{% static "script.js"%}"></script>
+{% endblock %}
+{% block content %}
+<div id="index-content">
+    <div id="corpora-area">
+        <h2 id="corpora-title">Uploaded Corpora</h2>
+        <div id="corpus-list">
+            {% for corpus in corpora %}
+            <div class="corpus" id="corpus-{% corpus.id %}">{% corpus.name %}</div>
+            {% endfor %}
+        </div>
+        <div id="upload-button">Upload New Corpus</div>
+    </div>
+    <div id="results-area">
+        <h2 id="results-title">Topic Modeling Results</h2>
+        <div id="result-list">
+            {% for result in results %}
+            <div class="result" id="result-{% result.id %}"></div>
+            {% endfor %}
+        </div>
+        {% comment %} <div id="new-analysis-button">Run New Analysis</div> {% endcomment %}
+    </div>
+</div>
+<div id="upload-modal" class="modal">
+    <div class="modal-content">
+        <div class="field-wrapper">
+            <label for="corpus-name-input">Name:</label>
+            <input id="corpus-name-input" name="corpus-name-input" type="text">
+        </div>
+        <div class="field-wrapper">
+            <label for="corpus-files-input">Text Files:</label>
+            <input id="corpus-files-input" name="corpus-files-input" type="file" accept=".txt" multiple>
+        </div>
+        <button id="corpus-upload-submit">Upload</button>
+    </div>
+</div>
+<div id="analysis-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="corpus-name"></h3>
+        <div class="field-wrapper">
+            <label for="analysis-name-input">Name:</label>
+            <input id="analysis-name-input" name="analysis-name-input" type="text">
+        </div>
+        <div class="field-wrapper">
+            <label for="topic-number-input">Text Files:</label>
+            <input id="topic-number-input" name="topic-number-input" type="number" min="1">
+        </div>
+        <input id="analysis-corpus-input" name="analysis-corpus-input" type="text">
+        <button id="analysis-submit">Run Analysis</button>
+    </div>
+</div>
+{% endblock %}

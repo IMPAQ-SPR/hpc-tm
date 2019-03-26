@@ -23,5 +23,5 @@ urlpatterns = [
     path('logout/', views.log_out, name='logout'),
     path('results/<int:result_id>', views.log_out, name='results'),
     path('upload_corpus/', views.upload_corpus, name='upload_corpus'),
-    path('analyze', views.analyze, name='analyze')
+    path('analyze/', views.analyze, name='analyze')
 ]

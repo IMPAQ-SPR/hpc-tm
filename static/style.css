@@ -1,0 +1,314 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    width: 100%;
+    height: 100%;
+}
+
+#results-content {
+    width: 99.5%;
+    min-width: 800px;
+    height: 100%;
+    min-height: 400px;
+    margin: auto;
+    /* padding: 15px; */
+    display: flex;
+    flex-direction: column;
+    background-color: #4d4d4d;
+}
+
+#site-title {
+    font-size: 22px;
+    letter-spacing: 1px;
+    font-weight: normal;
+    text-align: center;
+    padding: 10px;
+    color: white;
+}
+
+#content {
+    height: 100%;
+    display: flex;
+}
+
+#topics,
+#documents {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+#topics {
+    border-right: 1px solid #bfbfbf;
+}
+
+#documents {
+    border-left: 1px solid #bfbfbf;
+}
+
+#topics-title,
+#documents-title {
+    text-align: center;
+    background-color: #333333;
+    padding: 7px 0;
+    cursor: pointer;
+    color: white;
+    border-bottom: 4px solid #bfbfbf;
+}
+
+#topics-title:hover,
+#documents-title:hover {
+    color: #ffd633;
+    border-bottom: 4px solid #ffcc00;
+}
+
+#topic-container,
+#document-container {
+    display:none;
+    width: 0;
+    padding: 5px;
+    overflow-y: auto;
+    background-color: #f5f5f5;
+}
+
+#topic-distribution-container {
+    margin: 20px auto;
+    padding: 10px;
+    width: 350px;
+    border: 1px solid black;
+}
+
+#topic-distribution-title,
+#word-distribution-title
+{
+    text-align: center;
+}
+
+#topics-content,
+#documents-content {
+    display: flex;
+    height: 100%;
+}
+
+#topics-content {
+    border-left: 1px solid white;
+}
+
+#documents-content {
+    border-right: 1px solid white;
+}
+
+#documents-list-container {
+    width: 100%;
+    height: 100%;
+}
+
+#topics-list,
+#documents-list {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.topic-name-container {
+    height: 32px;
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-bottom: 2px solid white;
+    background-color: white;
+}
+
+.topic-name-container:hover .topic-name-bar,
+.document-name:hover,
+.document-name.selected,
+.topic-name-container.selected .topic-name,
+.topic-name-container.shrunken:hover .topic-name {
+    color: #ffd633;
+    background-color: rgb(32, 101, 148);
+}
+
+.topic-name-container:hover .topic-name {
+    color: #ffd633;
+}
+
+.topic-name-container.shrunken {
+    background-color: #4d4d4d;
+}
+
+.topic-name-bar {
+    background-color: #404040;
+    height: 100%;
+}
+
+.topic-name {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    line-height: 32px;
+    vertical-align: middle;
+    color: white;
+    padding: 0 5px;
+}
+
+#topic-title-container h3 {
+    display: inline;
+}
+
+#topic-title {
+    cursor: pointer;
+}
+
+#topic-title-input,
+#save-title-button,
+#cancel-title-button {
+    display: none;
+}
+
+#topic-title-input {
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #333333;
+    border-radius: 3px;
+    padding: 2px;
+}
+
+#cancel-title-button {
+    font-size: 12px;
+    color: #4da6ff;
+    cursor: pointer;
+}
+
+#topic-title-container,
+#document-title {
+    text-align: center;
+    padding: 5px;
+}
+
+#average-topic-likelihood {
+    text-align: center;
+    font-size: 12px;
+    padding: 3px;
+}
+
+#search-related-documents {
+    font-size: 11px;
+    color: #0066cc;
+    cursor: pointer;
+    text-align: center;
+}
+
+#top-words-container {
+    width: 100%;
+    height: 400px;
+}
+
+#word-distribution {
+    width: 100%;
+}
+
+#top-documents-container,
+#related-topics-container {
+    padding: 5px;
+}
+
+#top-documents-title,
+#related-topics-title {
+    display: inline-block;
+}
+
+#top-documents-content,
+#related-topics-content {
+    display: inline;
+}
+
+.document-link,
+.topic-link {
+    color: #0066cc;
+    cursor: pointer;
+    padding: 1px 3px;
+}
+
+#topic-title:hover,
+#search-related-documents:hover,
+.document-link:hover {
+    color: #4da6ff;
+}
+
+.document-name {
+    background-color: #4d4d4d;
+    color: white;
+    border-bottom: 1px solid white;
+    overflow: hidden;
+}
+
+#documents-list-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#documents-list {
+    height: 100%;
+    border-top: 1px solid white;
+}
+
+#documents-search-container {
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    display: flex;
+    background-color: white;
+}
+
+#documents-search {
+    border: none;
+    width: 100%;
+}
+
+#documents-search:focus {
+    outline: none;
+}
+
+#search-button {
+    height: 20px;
+    cursor: pointer;
+    padding-left: 5px;
+    border-left: 1px solid #333333;
+}
+
+.document-name {
+    padding: 8px;
+    cursor: pointer;
+    display: block;
+}
+
+#document-text {
+    padding: 5px;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}

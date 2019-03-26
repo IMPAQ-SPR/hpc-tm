@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_protect
+from models import Corpus, Document, Result
 
 def log_in(request):
     if request.method == 'GET':
@@ -28,8 +29,25 @@ def log_out(request):
 	
 @login_required(login_url='/login')
 def index(request):
-	pass
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            corpora = Corpus.objects.filter(user=request.user)
+            results = Result.objects.filter(corpus__in=corpora).defer("filepath")
+
+            return render(request, 'index.html', {'corpora': corpora, 'results': results})
 	
 @login_required(login_url='/login')
-def results(requests):
-	pass
+def results(request, result_id):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            result = Result.objects.get(id=result_id).defer("filepath")
+            if result.user == request.user:
+                return render(request, 'results.html', {results: result})
+
+def upload_corpus(request):
+    if request.method == 'POST':
+        pass
+
+def analyze(request):
+    if request.method == 'POST':
+        pass

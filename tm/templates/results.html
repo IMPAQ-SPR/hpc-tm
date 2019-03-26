@@ -1,0 +1,58 @@
+{% block header %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+<link rel="stylesheet" href="{% static "style.css" %}">
+<script src="{% static "script.js"%}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="results-content">
+    <h1 id="results-page-title">Topic Modeling Results</h1>
+    <div id="content">
+        <div id="topics">
+            <h2 id="topics-title">Topics</h2>
+            <div id="topics-content">
+                <div id="topics-list"></div>
+                <div id="topic-container">
+                    <div id="topic-title-container">
+                        <h3>Topic: </h3>
+                        <h3 id="topic-title" onclick="changeTitle()"></h3>
+                        <input id="topic-title-input">
+                        <span id="cancel-title-button" onclick="hideNewTitle()">Cancel</span>
+                    </div>
+                    <div id="average-topic-likelihood"></div>
+                    <div id="search-related-documents">Documents related to this topic</div>
+                    <div id="top-words-container"><canvas height="300" id="word-distribution" width="300"></canvas></div>
+                    <div id="top-documents-container">
+                        <h4 id="top-documents-title">Top Documents: </h4>
+                        <div id="top-documents-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="documents">
+            <h2 id="documents-title">Documents</h2>
+            <div id="documents-content">
+                <div id="documents-list-container">
+                    <div id="documents-search-container">
+                        <input id="documents-search" type="text"/>
+                        <img id="search-button" src="templates/search.png"/>
+                    </div>
+                    <div id="documents-list"></div>
+                </div>
+                <div id="document-container">
+                    <h3 id="document-title"></h3>
+                    <div id="document-text"></div>
+                    <div id="related-topics-container">
+                        <h4 id="related-topics-title">Related Topics: </h4>
+                        <div id="related-topics-content"></div>
+                    </div>
+                    <div id="topic-distribution-container">
+                        <h3 id="topic-distribution-title">Topic Distribution</h3>
+                        <div><canvas height="300" id="topic-distribution" width="300"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
