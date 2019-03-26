@@ -34,6 +34,8 @@ def index(request):
             corpora = Corpus.objects.filter(user=request.user)
             results = Result.objects.filter(corpus__in=corpora).defer("filepath")
 
+            print(corpora)
+            print(results)
             return render(request, 'index.html', {'corpora': corpora, 'results': results})
 	
 @login_required(login_url='/login')

@@ -1,3 +1,4 @@
+{% load staticfiles %}
 {% block header %}
 <link rel="stylesheet" href="{% static "style.css" %}">
 <script src="{% static "script.js"%}"></script>
@@ -8,7 +9,7 @@
         <h2 id="corpora-title">Uploaded Corpora</h2>
         <div id="corpus-list">
             {% for corpus in corpora %}
-            <div class="corpus" id="corpus-{% corpus.id %}">{% corpus.name %}</div>
+            <div class="corpus" id="corpus-{{ corpus.id }}">{{ corpus.name }}</div>
             {% endfor %}
         </div>
         <div id="upload-button">Upload New Corpus</div>
@@ -17,7 +18,7 @@
         <h2 id="results-title">Topic Modeling Results</h2>
         <div id="result-list">
             {% for result in results %}
-            <div class="result" id="result-{% result.id %}"></div>
+            <div class="result" id="result-{{ result.id }}">{{ result.name }}</div>
             {% endfor %}
         </div>
         {% comment %} <div id="new-analysis-button">Run New Analysis</div> {% endcomment %}

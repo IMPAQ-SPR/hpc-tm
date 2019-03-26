@@ -1,3 +1,6 @@
 *.pem
 venv/
 __pycache__
+secret_key.txt
+staticfiles/
+db.sqlite3
