@@ -4,3 +4,4 @@ __pycache__
 secret_key.txt
 staticfiles/
 db.sqlite3
+tm/migrations/
