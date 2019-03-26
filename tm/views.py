@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_protect
-from models import Corpus, Document, Result
+from tm.models import Corpus, Document, Result
 
 def log_in(request):
     if request.method == 'GET':
