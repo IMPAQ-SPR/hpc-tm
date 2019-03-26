@@ -1,0 +1,20 @@
+{% extends "impaqmicrosim/base.html" %}
+
+{% load staticfiles %}
+{% block header %}
+<link rel="stylesheet" href="{% static "style/style.css" %}">
+{% endblock %}
+{% block content %}
+    <div id="login_area">
+        <form action="/login/{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" method="post">
+            {% csrf_token %}
+            <div class="field_area">
+                <input type="text" name="username" id="username" placeholder="Username">
+            </div>
+            <div class="field_area">
+                <input type="password" name="password" id="password" placeholder="Password">
+            </div>
+            <input type="submit" value="Submit" id="login_button">
+        </form>
+    </div>
+{% endblock %}
