@@ -76,7 +76,11 @@ def upload_corpus(request):
 
             files = request.FILES.getlist('corpus-files-input')
 
-            corpus_directory = os.path.join(settings.BASE_DIR, 'corpus_files', str(corpus.id))
+            corpus_directory = os.path.join(settings.BASE_DIR, 'corpus_files')
+            if not os.path.exists(corpus_directory):
+                os.mkdir(corpus_directory)
+            
+            corpus_directory = os.path.join(corpus_directory, str(corpus.id))
             if not os.path.exists(corpus_directory):
                 os.mkdir(corpus_directory)
 
