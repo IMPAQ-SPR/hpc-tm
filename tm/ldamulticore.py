@@ -15,6 +15,8 @@ sys.path.append('../../')
 import gensim
 
 from argparse import ArgumentParser
+import numpy as np
+import json
 
 
 if __name__ == '__main__':
@@ -99,3 +101,29 @@ if __name__ == '__main__':
     logging.info('Training concluded')
     logging.info('Saving...')
     lda.save(f'{cli.n}')
+
+    document_topics = list(lda.get_document_topics(corpus))
+    document_topics_array = np.zeros((len(document_topics), cli.t))
+
+    for i in range(len(document_topics)):
+        for t in document_topics[i]:
+            document_topics_array[i][t[0]] = t[1]
+
+    average_likelihood = np.sum(document_topics_array)
+
+    topics = []
+    for i in range(cli.t):
+        topics.append({})
+        topic_dist = lda.show_topic(i, topn=20)
+
+        for j in range(len(topic_dist)):
+            topic_dist[j] = (topic_dist[j][0], float(topic_dist[j][1]))
+
+        topics[i]['top_words'] = topic_dist
+        average_likelihood = np.sum(document_topics_array[:, i]) / document_topics_array.shape[0]
+        topics[i]['average_likelihood'] = float(average_likelihood)
+
+    with open('topics.json', 'w') as topics_file:
+        json.dump(topics, topics_file)
+
+    np.save('document_topics.npy', document_topics_array)

@@ -21,7 +21,10 @@ urlpatterns = [
 	path('', views.index, name='index'),
     path('login/', views.log_in, name='login'),
     path('logout/', views.log_out, name='logout'),
-    path('results/<int:result_id>', views.log_out, name='results'),
+    path('results/<int:result_id>', views.results, name='results'),
     path('upload_corpus/', views.upload_corpus, name='upload_corpus'),
-    path('analyze/', views.analyze, name='analyze')
+    path('analyze/', views.analyze, name='analyze'),
+    path('document_info/', views.get_document_info, name='get_document_info'),
+    path('topic_documents/', views.get_topic_documents, name='get_topic_documents'),
+    path('search_keyword/', views.search_keyword, name='search_keyword')
 ]

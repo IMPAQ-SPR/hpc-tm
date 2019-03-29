@@ -18,7 +18,7 @@ function createTopicElements() {
                         .addClass('topic-name')
                         .text(topics[i]['name'])
                 )
-                .click({id: i}, selectTopic)
+                .click({id: topics[i]['id']}, selectTopic)
         );
     }
 }
@@ -26,7 +26,15 @@ function createTopicElements() {
 var word_distribution = undefined;
 function selectTopic(event) {
     var id = event.data.id;
-    var topic = topics[id];
+    var topic;
+
+    for (var i = 0; i < topics.length; i++) {
+        if (topics[i]['id'] == id) {
+            topic = topics[i];
+            break;
+        }
+    }
+
     $('.topic-name-container').removeClass('selected');
     $('.topic-name-container').eq(id).addClass('selected');
 
@@ -66,7 +74,7 @@ function selectTopic(event) {
             .append(
                 $('<span/>')
                     .addClass('document-link')
-                    .text(documents[topic['top_documents'][i]]['title'])
+                    .text('Document ' + topic['top_documents'][i])
                     .click({documentId: topic['top_documents'][i]}, selectDocument)
             );
 
@@ -109,13 +117,14 @@ function saveTitle(event) {
 function createWordDistChart(topic) {
     var data = {
         datasets:[{
-            data: topic['top_words_values'],
+            data: topic['top_word_values'],
             backgroundColor: 'rgba(0, 204, 102, 0.5)',
             borderColor: 'rgba(0, 153, 77, 1)',
             borderWidth: 1
         }],
         labels: topic['top_words']
     };
+    console.log(data);
 
     if (word_distribution == undefined) {
         var ctx = $('#word-distribution');
@@ -147,18 +156,17 @@ function createWordDistChart(topic) {
     }
 }
 
-var docIds = undefined;
 function createDocumentElements() {
     var documentList = $('#documents-list');
 
-    for (var i = 0; i < docIds.length; i++) {
+    for (var i = 0; i < documents.length; i++) {
         documentList
             .append(
                 $('<div/>')
                     .addClass('document-name')
-                    .attr('id', 'document_' + docIds[i])
-                    .text(documents[docIds[i]]['title'])
-                    .click({documentId: docIds[i]}, selectDocument)
+                    .attr('id', 'document_' + documents[i])
+                    .text('Document ' + documents[i])
+                    .click({documentId: documents[i]}, selectDocument)
             )
     }
 }
@@ -167,66 +175,81 @@ var topic_distribution = undefined;
 var valid_colors = ['#0066ff', '#cc0000', '#339933', '#e6e600', '#666699', '#ff9933', '#29a3a3']
 function selectDocument(event) {
     var id = event.data.documentId;
-    var document = documents[id];
-    $('.document-name').removeClass('selected');
-    $('#document_' + id + '.document-name').addClass('selected');
+    var result_id = window.location.href.split('/').pop();
+    
+    $.ajax({
+        url: '/document_info/',
+        type: 'POST',
+        dataType: 'json',
+        data: {document_id: id, result_id: result_id},
+        success: function(document) {
+            console.log(document);
+            $('.document-name').removeClass('selected');
+            $('#document_' + id + '.document-name').addClass('selected');
 
-    $('#document-title').text(document['title']);
-    $('#document-text').text(document['text']);
+            $('#document-title').text('Document ' + id);
+            $('#document-text').text(document['text']);
 
-    var relatedDocumentsContent = $('#related-topics-content');
-    relatedDocumentsContent.empty();
-    for (var i = 0; i < document['closest_topics'].length; i++) {
-        relatedDocumentsContent
-            .append(
-                $('<span/>')
-                    .addClass('topic-link')
-                    .text(topics[document['closest_topics'][i]]['name'])
-                    .click({id: document['closest_topics'][i]}, selectTopic)
-            );
+            var relatedDocumentsContent = $('#related-topics-content');
+            relatedDocumentsContent.empty();
+            for (var i = 0; i < document['topics'].length; i++) {
+                relatedDocumentsContent
+                    .append(
+                        $('<span/>')
+                            .addClass('topic-link')
+                            .text(document['topics'][i]['topic_name'])
+                            .click({id: document['topics'][i]['topic_id']}, selectTopic)
+                    );
 
-        if (i != document['closest_topics'].length - 1) {
-            relatedDocumentsContent.append($('<span/>').html(' &#x2022 '));
+                if (i != document['topics'].length - 1) {
+                    relatedDocumentsContent.append($('<span/>').html(' &#x2022 '));
+                }
+            }
+
+            if ($('#document-container').css('display') == 'none') {
+                $('#documents-list-container').animate({width: '30%'}, 250, function() { $('#documents-list-container').css('border-right', '1px solid #333333'); });
+                $('#document-container').css({display: 'block'}).animate({width: '70%'}, 250);
+            }
+
+            var data = {
+                datasets:[{
+                    data: [],
+                    backgroundColor: []
+                }],
+                labels: []
+            };
+
+            var sum = 0;
+            for (var i = 0; i < document['topics'].length; i++) {
+                var topicId = document['topics'][i]['topic_id'];
+                var val = document['topics'][i]['probability'];
+                data.datasets[0].data.push(val);
+                data.datasets[0].backgroundColor.push(valid_colors[i % valid_colors.length]);
+                data.labels.push(document['topics'][i]['topic_name']);
+                sum += val;
+            }
+
+            data.datasets[0].data.push(1 - sum);
+            data.datasets[0].backgroundColor.push('#b3b3b3');
+            data.labels.push('Remaining');
+
+            if (topic_distribution == undefined) {
+                var ctx = $('#topic-distribution');
+                topic_distribution = new Chart(ctx,{
+                    type: 'pie',
+                    data: data
+                });
+            } else {
+                topic_distribution.config.data = data;
+                topic_distribution.update();
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
         }
-    }
-
-    if ($('#document-container').css('display') == 'none') {
-        $('#documents-list-container').animate({width: '30%'}, 250, function() { $('#documents-list-container').css('border-right', '1px solid #333333'); });
-        $('#document-container').css({display: 'block'}).animate({width: '70%'}, 250);
-    }
-
-    var data = {
-        datasets:[{
-            data: [],
-            backgroundColor: []
-        }],
-        labels: []
-    };
-
-    var sum = 0;
-    for (var i = 0; i < document['closest_topics'].length; i++) {
-        var topicId = document['closest_topics'][i];
-        var val = document['topic_distributions'][topicId];
-        data.datasets[0].data.push(val);
-        data.datasets[0].backgroundColor.push(valid_colors[i % valid_colors.length]);
-        data.labels.push(topics[topicId]['name']);
-        sum += val;
-    }
-
-    data.datasets[0].data.push(1 - sum);
-    data.datasets[0].backgroundColor.push('#b3b3b3');
-    data.labels.push('Remaining');
-
-    if (topic_distribution == undefined) {
-        var ctx = $('#topic-distribution');
-        topic_distribution = new Chart(ctx,{
-            type: 'pie',
-            data: data
-        });
-    } else {
-        topic_distribution.config.data = data;
-        topic_distribution.update();
-    }
+    });
 }
 
 function searchDocuments() {
@@ -241,22 +264,48 @@ function searchDocuments() {
             var topicName = query.slice(7, -1);
             var topicId = findTopicId(topicName);
 
-            $('.document-name').hide();
             if (topicId == -1) {
                 return;
             }
-            for (var i = 0; i < docIds.length; i++) {
-                if (documents[docIds[i]]['closest_topics'].includes(topicId)) {
-                    $('#document_' + docIds[i]).show();
+
+            $.ajax({
+                url: '/topic_documents/',
+                type: 'POST',
+                dataType: 'json',
+                data: {topic_id: topicId},
+                success: function(response) {
+                    console.log(response);
+                    $('#documents-list').empty();
+                    documents = response['data'];
+
+                    createDocumentElements();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
                 }
-            }
+            });
         } else {
-            $('.document-name').hide();
-            for (var i = 0; i < docIds.length; i++) {
-                if (documents[docIds[i]]['title'].toLowerCase().includes(query)) {
-                    $('#document_' + docIds[i]).show();
+            var result_id = window.location.href.split('/').pop();
+            $.ajax({
+                url: '/search_keyword/',
+                type: 'POST',
+                dataType: 'json',
+                data: {result_id: result_id, keyword: query},
+                success: function(response) {
+                    console.log(response);
+                    $('#documents-list').empty();
+                    documents = response['data'];
+
+                    createDocumentElements();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR);
+                    console.log(textStatus);
+                    console.log(errorThrown);
                 }
-            }
+            });
         }
     }
     $('#documents-search').focus();
@@ -266,7 +315,7 @@ function searchDocuments() {
 function findTopicId(topicName) {
     for (var i = 0; i < topics.length; i++) {
         if (topics[i]['name'] == topicName) {
-            return i;
+            return topics[i]['id'];
         }
     }
 
@@ -281,34 +330,58 @@ function clearSearch() {
     $('#documents-list').animate({ scrollTop: "0" }, 250);
 }
 
-function setSearchMagnifyingGlass() {
-    $('#search-button')
-        .attr('src', 'templates/search.png')
-        .off('click')
-        .click(searchDocuments);
+function showUploadModal() {
+    $('#upload-modal').css({'display': 'flex'});
+}
 
-    if ($('#documents-search').val() == '') {
-        $('.document-name').show();
+function showAnalysisModal(corpusId, corpusName) {
+    $('#corpus-name').text(corpusName);
+    $('#corpus-id-input').val(corpusId);
+    $('#analysis-modal').css({'display': 'flex'});
+}
+
+function submitAnalysis() {
+    $('#analysis-submit').attr('disabled', true);
+    var data = {corpus_id: $('#corpus-id-input').val(),
+                topic_num: $('#topic-number-input').val(),
+                analysis_name: $('#analysis-name-input').val(),            
+    }
+    $.ajax({
+        url: 'analyze/',
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+        success: function(response) {
+            location.reload();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+        }
+    });
+}
+
+window.onclick = function(event) {
+    if (event.target.id == 'upload-modal') {
+        $('#upload-modal').hide();
+    } else if (event.target.id == 'analysis-modal') {
+        $('#analysis-modal').hide();
     }
 }
 
-function setExitSearch() {
-    $('#search-button')
-        .attr('src', 'templates/exit.png')
-        .off('click')
-        .click(clearSearch);
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
 $(document).ready(function() {
-    createTopicElements();
-    docIds = Object.keys(documents);
-    createDocumentElements();
-    $('#documents-search-container #search-button').click(searchDocuments);
-    $('#documents-search')
-        .on('input', setSearchMagnifyingGlass)
-        .keypress(function(e) {
-            if (e.which == 13) {
-                searchDocuments();
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
             }
-        });
+        }
+    });
 });

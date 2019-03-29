@@ -1,3 +1,4 @@
+import os
 import boto3
 import paramiko
 import time
@@ -6,11 +7,15 @@ import botocore.exceptions
 
 
 class InstanceManager:
-    def __init__(self, key_name, key_file, instance_num=1, instance_type='c5.large', image_id='ami-0a47106e391391252',
+    def __init__(self, key_name, key_file, environment_configuration=False, instance_num=1, instance_type='c5.large', image_id='ami-0a47106e391391252',
                  username='ubuntu', home_directory='home/ubuntu/', security_group_ids=None):
         self.instances = []
         self.ssh_clients = {}
-        self.ec2 = boto3.resource('ec2')
+        self.environment_configuration = environment_configuration
+        if environment_configuration:
+            self.ec2 = boto3.resource('ec2', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_DEFAULT_REGION'])
+        else:
+            self.ec2 = boto3.resource('ec2')
         self.key_name = key_name
         self.key_file = key_file
         self.security_group_ids = security_group_ids
@@ -24,7 +29,7 @@ class InstanceManager:
         atexit.register(self.cleanup)
 
     def cleanup(self):
-        self.terminate_instances(wait_until_terminated=True)
+        self.terminate_instances(wait_until_terminated=self.security_group_created)
 
         if self.security_group_created:
             self.delete_security_group()
@@ -64,20 +69,6 @@ class InstanceManager:
                      'Ipv6Ranges': [{'CidrIpv6': '::/0'}]}
                 ])
 
-            # security_group.authorize_egress(
-            #     IpPermissions=[
-            #         {'IpProtocol': 'tcp',
-            #          'FromPort': 80,
-            #          'ToPort': 80,
-            #          'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
-            #          'Ipv6Ranges': [{'CidrIpv6': '::/0'}]},
-            #         {'IpProtocol': 'tcp',
-            #          'FromPort': 22,
-            #          'ToPort': 22,
-            #          'IpRanges': [{'CidrIp': '0.0.0.0/0'}],
-            #          'Ipv6Ranges': [{'CidrIpv6': '::/0'}]}
-            #     ])
-
             self.security_group_ids = [security_group.id]
             self.security_group_created = True
         except botocore.exceptions.ClientError as e:
@@ -91,7 +82,10 @@ class InstanceManager:
     def delete_security_group(self):
         for security_group_id in self. security_group_ids:
             try:
-                boto3.client('ec2').delete_security_group(GroupId=security_group_id)
+                if self.environment_configuration:
+                    boto3.client('ec2', aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'], aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'], region_name=os.environ['AWS_DEFAULT_REGION']).delete_security_group(GroupId=security_group_id)
+                else:
+                    boto3.client('ec2').delete_security_group(GroupId=security_group_id)
                 print('Security group {} deleted'.format(security_group_id))
             except botocore.exceptions.ClientError as e:
                 print(e)
@@ -205,7 +199,7 @@ class InstanceManager:
         for instance in instances:
             client = self.ssh_clients[instance.id]
             sftp = client.open_sftp()
-            sftp.put(source_file, destination_file)
+            sftp.put(source_file, os.path.join(self.home_directory, destination_file))
             sftp.close()
 
     def download_file_from_instance(self, source_file, destination_file, instance):
@@ -219,6 +213,7 @@ class InstanceManager:
             raise
 
     def execute_command(self, command, instances=None):
+        print('Executing:', command)
         instances = self.__parse_instances(instances)
 
         for instance in instances:
@@ -229,34 +224,9 @@ class InstanceManager:
                 for line in stdout.readlines():
                     print(line, end='')
             else:
-                print('Something went wrong with the command')
+                for line in stderr.readlines():
+                    print(line, end='')
 
     def download_file_from_url(self, url, instances=None):
         command = 'wget {}'.format(url)
         self.execute_command(command, instances)
-
-
-def test():
-    manager = InstanceManager('MyKeyPair', 'C:/Users/mtrinh/.ssh/MyKeyPair.pem')
-    print('Creating instances and waiting for instances to reach running stage')
-    instances = manager.create_instances(wait_for_running=True)
-    ip_address = instances[0].public_ip_address
-    print('IP Address:', ip_address)
-    print('Connecting to instance')
-    manager.connect_to_instances()
-    print('Downloading corpus to instance')
-    manager.download_file_from_url('https://s3.amazonaws.com/eri-belair-hpc/text-mining/data/arxiv/corpora/'
-                                   'arxiv-full-10M-spacy/arxiv-full-10M-spacy-SUBSET10k.mm')
-    print('Transferring script to instance')
-    manager.upload_file_to_instance('TmTest.py', '/home/ubuntu/TmTest.py')
-    print('Installing dependencies')
-    manager.execute_command('pip install gensim')
-    print('Executing script command')
-    manager.execute_command('python TmTest.py')
-    print('Downloading run times')
-    manager.download_file_from_instance('runtimes.csv', 'runtimes.csv', instance=instances[0])
-    manager.terminate_instances()
-
-
-if __name__ == '__main__':
-    test()

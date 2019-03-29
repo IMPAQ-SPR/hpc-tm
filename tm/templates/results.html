@@ -1,4 +1,7 @@
+{% extends "base.html" %}
+{% load staticfiles %}
 {% block header %}
+{% csrf_token %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
 <link rel="stylesheet" href="{% static "style.css" %}">
 <script src="{% static "script.js"%}"></script>
@@ -35,7 +38,7 @@
                 <div id="documents-list-container">
                     <div id="documents-search-container">
                         <input id="documents-search" type="text"/>
-                        <img id="search-button" src="templates/search.png"/>
+                        <img id="search-button" src="{% static "search.png" %}"/>
                     </div>
                     <div id="documents-list"></div>
                 </div>
@@ -55,4 +58,40 @@
         </div>
     </div>
 </div>
+
+<script>
+    var topics = {{ topics|safe }};
+    var documents = {{ documents|safe }}
+    $(document).ready(function() {
+        createTopicElements();
+        docIds = Object.keys(documents);
+        createDocumentElements();
+        $('#documents-search-container #search-button').click(searchDocuments);
+        $('#documents-search')
+            .on('input', setSearchMagnifyingGlass)
+            .keypress(function(e) {
+                if (e.which == 13) {
+                    searchDocuments();
+                }
+            });
+        });
+
+    function setSearchMagnifyingGlass() {
+        $('#search-button')
+            .attr('src', "{% static "search.png" %}")
+            .off('click')
+            .click(searchDocuments);
+
+        if ($('#documents-search').val() == '') {
+            $('.document-name').show();
+        }
+    }
+
+    function setExitSearch() {
+        $('#search-button')
+            .attr('src', "{% static "exit.png" %}")
+            .off('click')
+            .click(clearSearch);
+    }
+</script>
 {% endblock %}
