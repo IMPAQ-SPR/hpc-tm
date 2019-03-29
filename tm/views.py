@@ -157,7 +157,7 @@ def analyze(request):
             print('Running analysis on corpus', corpus_id)
 
             if corpus.user == request.user:
-                # run_aws_analysis(corpus, topic_num)
+                run_aws_analysis(corpus, topic_num)
                 corpus.mm_filepath = os.path.join(str(corpus.id), 'corpus.mm')
                 corpus.dictionary_file_path = os.path.join(str(corpus.id), 'corpus.mm.dictionary.cpickle')
                 corpus.save()
