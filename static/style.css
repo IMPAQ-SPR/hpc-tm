@@ -108,7 +108,8 @@ body {
 }
 
 #upload-button:hover,
-#corpus-upload-submit:hover {
+#corpus-upload-submit:hover,
+#login-button:hover {
     background-color: rgb(69, 132, 173);
 }
 
@@ -410,7 +411,8 @@ body {
 }
 
 #corpus-upload-submit,
-#analysis-submit {
+#analysis-submit,
+#login-button {
     padding: 5px;
     border: none;
     border-radius: 3px;
@@ -440,4 +442,16 @@ body {
     font-weight: normal;
     margin-bottom: 5px;
     color: rgb(211, 211, 211);
+}
+
+#login-area .field-area {
+    text-align: center;
+    margin: 5px;
+}
+
+#login-area input {
+    border: 2px solid rgb(32, 101, 148);
+    border-radius: 8px;
+    padding: 5px;
+    font-size: 16px;
 }
