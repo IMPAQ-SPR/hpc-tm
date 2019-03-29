@@ -14,6 +14,7 @@ import numpy as np
 import time
 # from worker import conn
 # from rq import Queue
+import threading
 from background_task import background
 
 # q = Queue(connection=conn)
@@ -99,7 +100,7 @@ def upload_corpus(request):
 
             return redirect('/')
 
-@background(schedule=5)
+# @background(schedule=5)
 def run_aws_analysis(corpus_id, topic_num, analysis_name):
     print('Starting manager')
 
@@ -189,7 +190,10 @@ def analyze(request):
 
             if corpus.user == request.user:
                 # q.enqueue(run_aws_analysis, corpus, topic_num)
-                run_aws_analysis(corpus_id, topic_num, analysis_name)
+                # run_aws_analysis(corpus_id, topic_num, analysis_name)
+                t = threading.Thread(target=run_aws_analysis, args=[corpus_id, topic_num, analysis_name])
+                t.setDaemon(True)
+                t.start()
 
                 return JsonResponse({'data': 'Running analysis'})
 
