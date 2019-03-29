@@ -12,11 +12,11 @@ import os
 import json
 import numpy as np
 import time
-from worker import conn
-from rq import Queue
+# from worker import conn
+# from rq import Queue
 from background_task import background
 
-q = Queue(connection=conn)
+# q = Queue(connection=conn)
 
 def log_in(request):
     if request.method == 'GET':
@@ -191,7 +191,7 @@ def analyze(request):
                 # q.enqueue(run_aws_analysis, corpus, topic_num)
                 run_aws_analysis(corpus_id, topic_num, analysis_name)
 
-                return JsonResponse('Running analysis')
+                return JsonResponse({'data': 'Running analysis'})
 
 @csrf_protect
 def get_document_info(request):
