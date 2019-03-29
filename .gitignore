@@ -5,4 +5,3 @@ staticfiles/
 db.sqlite3
 tm/migrations/
 corpus_files/*
-Belair-Text-Experiments.zip
