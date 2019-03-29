@@ -92,6 +92,13 @@ def upload_corpus(request):
 
 def run_aws_analysis(corpus, topic_num):
     print('Starting manager')
+
+    if not os.path.isfile('MyKeyPair.pem'):
+        key_pair = os.environ['KEY_PAIR']
+
+        with open('MyKeyPair.pem', 'w') as key_pair_file:
+            key_pair_file.write(key_pair)
+
     manager = InstanceManager('MyKeyPair', 'MyKeyPair.pem', environment_configuration=True, instance_type='c5.9xlarge')
     print('Creating instances')
     instances = manager.create_instances(wait_for_running=True)
