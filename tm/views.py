@@ -100,7 +100,7 @@ def upload_corpus(request):
             return redirect('/')
 
 @background(schedule=5)
-def run_aws_analysis(corpus, topic_num):
+def run_aws_analysis(corpus, topic_num, analysis_name):
     print('Starting manager')
 
     if not os.path.isfile('MyKeyPair.pem'):
@@ -187,7 +187,7 @@ def analyze(request):
 
             if corpus.user == request.user:
                 # q.enqueue(run_aws_analysis, corpus, topic_num)
-                run_aws_analysis(corpus, topic_num)
+                run_aws_analysis(corpus, topic_num, analysis_name)
 
                 return JsonResponse('Running analysis')
 
