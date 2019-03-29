@@ -100,16 +100,18 @@ def upload_corpus(request):
             return redirect('/')
 
 @background(schedule=5)
-def run_aws_analysis(corpus, topic_num, analysis_name):
+def run_aws_analysis(corpus_id, topic_num, analysis_name):
     print('Starting manager')
 
-    if not os.path.isfile('MyKeyPair.pem'):
+    corpus = Corpus.objects.get(id=corpus_id)
+    pem_file = os.path.join(settings.BASE_DIR, 'MyKeyPair.pem')
+    if not os.path.isfile(pem_file):
         key_pair = os.environ['KEY_PAIR']
 
-        with open('MyKeyPair.pem', 'w') as key_pair_file:
+        with open(pem_file, 'w') as key_pair_file:
             key_pair_file.write(key_pair)
 
-    manager = InstanceManager('MyKeyPair', 'MyKeyPair.pem', environment_configuration=True, instance_type='c5.9xlarge')
+    manager = InstanceManager('MyKeyPair', pem_file, environment_configuration=True, instance_type='c5.9xlarge')
     print('Creating instances')
     instances = manager.create_instances(wait_for_running=True)
     time.sleep(10)
@@ -187,7 +189,7 @@ def analyze(request):
 
             if corpus.user == request.user:
                 # q.enqueue(run_aws_analysis, corpus, topic_num)
-                run_aws_analysis(corpus, topic_num, analysis_name)
+                run_aws_analysis(corpus_id, topic_num, analysis_name)
 
                 return JsonResponse('Running analysis')
 
