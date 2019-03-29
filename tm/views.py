@@ -12,6 +12,10 @@ import os
 import json
 import numpy as np
 import time
+from worker import conn
+from rq import Queue
+
+q = Queue(connection=conn)
 
 def log_in(request):
     if request.method == 'GET':
@@ -143,7 +147,30 @@ def run_aws_analysis(corpus, topic_num):
     manager.download_file_from_instance('/home/ubuntu/topics.json', os.path.join(corpus_directory, 'topics.json'), instance=instances[0])
     manager.download_file_from_instance('/home/ubuntu/document_topics.npy', os.path.join(corpus_directory, 'document_topics.npy'), instance=instances[0])
 
-    manager.terminate_instances()    
+    manager.terminate_instances()
+
+    corpus.mm_filepath = os.path.join(str(corpus.id), 'corpus.mm')
+    corpus.dictionary_file_path = os.path.join(str(corpus.id), 'corpus.mm.dictionary.cpickle')
+    corpus.save()
+    result = Result.objects.create(corpus=corpus, topic_num=topic_num, filepath=os.path.join(str(corpus.id), 'results'), name=analysis_name)
+
+    corpus_directory = os.path.join(settings.BASE_DIR, 'corpus_files', str(corpus.id))
+    with open(os.path.join(corpus_directory, 'topics.json')) as topics_file:
+        topic_words = json.load(topics_file)
+    
+    documents = Document.objects.filter(corpus=corpus).order_by('id')
+    document_topics = np.load(os.path.join(corpus_directory, 'document_topics.npy'))
+
+    for i in range(len(topic_words)):
+        topic_name = ', '.join([w[0] for w in topic_words[i]['top_words'][:3]])
+        topic = ResultTopic.objects.create(result=result, name=topic_name, average_likelihood=topic_words[i]['average_likelihood'])
+
+        for word in topic_words[i]['top_words']:
+            ResultTopicWord.objects.create(topic=topic, word=word[0], probability=word[1])
+
+        for j in range(document_topics.shape[0]):
+            if document_topics[j][i] != 0:
+                ResultDocumentTopic.objects.create(document=documents[j], topic=topic, probability=document_topics[j][i])
 
 @csrf_protect
 def analyze(request):
@@ -157,43 +184,9 @@ def analyze(request):
             print('Running analysis on corpus', corpus_id)
 
             if corpus.user == request.user:
-                run_aws_analysis(corpus, topic_num)
-                corpus.mm_filepath = os.path.join(str(corpus.id), 'corpus.mm')
-                corpus.dictionary_file_path = os.path.join(str(corpus.id), 'corpus.mm.dictionary.cpickle')
-                corpus.save()
-                result = Result.objects.create(corpus=corpus, topic_num=topic_num, filepath=os.path.join(str(corpus.id), 'results'), name=analysis_name)
+                q.enqueue(run_aws_analysis, corpus, topic_num)
 
-                corpus_directory = os.path.join(settings.BASE_DIR, 'corpus_files', str(corpus.id))
-                with open(os.path.join(corpus_directory, 'topics.json')) as topics_file:
-                    topic_words = json.load(topics_file)
-                
-                documents = Document.objects.filter(corpus=corpus).order_by('id')
-                document_topics = np.load(os.path.join(corpus_directory, 'document_topics.npy'))
-
-                # for t in topic_words:
-                #     topic_name = ', '.join([w[0] for w in t['top_words'][:3]])
-                #     topic = ResultTopic.objects.create(result=result, name=topic_name, average_likelihood=t['average_likelihood'])
-
-                #     for word in t['top_words']:
-                #         ResultTopicWord.objects.create(topic=topic, word=word[0], probability=word[1])
-
-                #     for i in range(document_topics.shape[0]):
-                #         for topic_prob in document_topics[i]:
-                #             if topic_prob != 0:
-                #                 ResultDocumentTopic.objects.create(document=documents[i], topic=topic, probability=topic_prob)
-
-                for i in range(len(topic_words)):
-                    topic_name = ', '.join([w[0] for w in topic_words[i]['top_words'][:3]])
-                    topic = ResultTopic.objects.create(result=result, name=topic_name, average_likelihood=topic_words[i]['average_likelihood'])
-
-                    for word in topic_words[i]['top_words']:
-                        ResultTopicWord.objects.create(topic=topic, word=word[0], probability=word[1])
-
-                    for j in range(document_topics.shape[0]):
-                        if document_topics[j][i] != 0:
-                            ResultDocumentTopic.objects.create(document=documents[j], topic=topic, probability=document_topics[j][i])
-
-                return redirect('/')
+                return JsonResponse('Running analysis')
 
 @csrf_protect
 def get_document_info(request):
